@@ -1,0 +1,50 @@
+{
+  "name": "bdd-ai-showcase",
+  "owner": {
+    "name": "Storm"
+  },
+  "plugins": [
+    {
+      "name": "pm-airtable-setup",
+      "source": "./pm-airtable-setup",
+      "description": "Set up Airtable tables for PM plugins (domain-knowledge, requirements)",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm-architecture",
+      "source": "./pm-architecture",
+      "description": "Manage tech stack and architecture decisions (ADRs)",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm-domain-knowledge",
+      "source": "./pm-domain-knowledge",
+      "description": "Document domain knowledge including entities, processes, and ubiquitous language",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm-planning",
+      "source": "./pm-planning",
+      "description": "Interactive planning from backlog items to implementation plans with specialized agents",
+      "version": "2.0.0"
+    },
+    {
+      "name": "pm-prioritization",
+      "source": "./pm-prioritization",
+      "description": "Manage product backlog with MoSCoW prioritization",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm-requirements",
+      "source": "./pm-requirements",
+      "description": "BDD requirements with Gherkin feature files (Given-When-Then)",
+      "version": "1.0.0"
+    },
+    {
+      "name": "pm-vision",
+      "source": "./pm-vision",
+      "description": "Create and maintain product vision documentation",
+      "version": "1.0.0"
+    }
+  ]
+}
