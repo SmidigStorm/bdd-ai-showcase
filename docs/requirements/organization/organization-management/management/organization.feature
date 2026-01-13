@@ -10,24 +10,22 @@ Feature: Organization Management
   Scenario: Create a new organization
     Given I am on the homepage
     When I click the Add Organization button
-    And I fill in a unique name
+    And I fill in "Harvard University" as the name
     And I click Save
-    Then I should see my organization in the list
+    Then I should see "Harvard University" in the list
 
   @implemented
   Scenario: Edit an organization
     Given I am on the homepage
-    And I create a test organization via API
-    And I refresh the page
-    When I click Edit on my organization
-    And I change the name to something unique
+    And an organization "MIT" exists
+    When I click Edit on "MIT"
+    And I change the name to "Massachusetts Institute of Technology"
     And I click Save
-    Then I should see the updated name in the list
+    Then I should see "Massachusetts Institute of Technology" in the list
 
   @implemented
   Scenario: Delete an organization
     Given I am on the homepage
-    And I create a test organization via API
-    And I refresh the page
-    When I click Delete on my organization
-    Then my organization should not be in the list
+    And an organization "Closing Academy" exists
+    When I click Delete on "Closing Academy"
+    Then "Closing Academy" should not be in the list
