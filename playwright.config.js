@@ -8,6 +8,8 @@ const testDir = defineBddConfig({
 
 module.exports = defineConfig({
   testDir,
+  timeout: 5000,
+  retries: 0,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:3000',

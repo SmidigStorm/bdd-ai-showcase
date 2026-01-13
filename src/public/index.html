@@ -9,6 +9,13 @@
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #ddd; }
     th { background: #f5f5f5; }
+    button { padding: 0.25rem 0.5rem; cursor: pointer; }
+    .actions { white-space: nowrap; }
+    .form-section { margin: 1rem 0; padding: 1rem; border: 1px solid #ddd; display: none; }
+    .form-section.visible { display: block; }
+    .form-section label { display: block; margin: 0.5rem 0 0.25rem; }
+    .form-section input, .form-section select { width: 100%; padding: 0.5rem; box-sizing: border-box; }
+    .form-section button { margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -16,41 +23,140 @@
   <p>Welcome to the BDD AI Showcase application.</p>
 
   <h2>Organizations</h2>
+  <button id="add-org-btn">Add Organization</button>
+
+  <div id="org-form" class="form-section">
+    <h3 id="form-title">Add Organization</h3>
+    <input type="hidden" id="org-id">
+    <label for="org-name">Name</label>
+    <input type="text" id="org-name" required>
+    <label for="org-level">Level</label>
+    <select id="org-level">
+      <option value="UNIVERSITY">University</option>
+      <option value="COLLEGE">College</option>
+      <option value="HIGH_SCHOOL">High School</option>
+    </select>
+    <label for="org-category">Category</label>
+    <select id="org-category">
+      <option value="LIBERAL_ARTS">Liberal Arts</option>
+      <option value="TECHNICAL">Technical</option>
+      <option value="PROFESSIONAL">Professional</option>
+      <option value="RESEARCH">Research</option>
+      <option value="VOCATIONAL">Vocational</option>
+    </select>
+    <label for="org-description">Description (optional)</label>
+    <input type="text" id="org-description">
+    <button id="submit-org-btn">Save</button>
+    <button type="button" id="cancel-btn">Cancel</button>
+  </div>
+
   <table>
     <thead>
       <tr>
         <th>Name</th>
         <th>Level</th>
         <th>Category</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="organizations-list">
-      <tr><td colspan="3">Loading...</td></tr>
+      <tr><td colspan="4">Loading...</td></tr>
     </tbody>
   </table>
 
   <script>
+    let organizations = [];
+
     async function loadOrganizations() {
       const tbody = document.getElementById('organizations-list');
       try {
         const response = await fetch('/api/organizations');
-        const organizations = await response.json();
+        organizations = await response.json();
 
         if (organizations.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3">No organizations found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4">No organizations found.</td></tr>';
           return;
         }
 
         tbody.innerHTML = organizations.map(org => `
-          <tr>
+          <tr data-id="${org.id}">
             <td>${org.name}</td>
             <td>${org.level}</td>
             <td>${org.category}</td>
+            <td class="actions">
+              <button onclick="editOrganization('${org.id}')">Edit</button>
+              <button onclick="deleteOrganization('${org.id}')">Delete</button>
+            </td>
           </tr>
         `).join('');
       } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="3">Error loading organizations.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4">Error loading organizations.</td></tr>';
       }
+    }
+
+    function showForm(title = 'Add Organization') {
+      document.getElementById('form-title').textContent = title;
+      document.getElementById('org-form').classList.add('visible');
+    }
+
+    function hideForm() {
+      document.getElementById('org-form').classList.remove('visible');
+      document.getElementById('org-id').value = '';
+      document.getElementById('org-name').value = '';
+      document.getElementById('org-level').value = 'UNIVERSITY';
+      document.getElementById('org-category').value = 'LIBERAL_ARTS';
+      document.getElementById('org-description').value = '';
+    }
+
+    document.getElementById('add-org-btn').addEventListener('click', () => {
+      hideForm();
+      showForm('Add Organization');
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', hideForm);
+
+    document.getElementById('submit-org-btn').addEventListener('click', async () => {
+      const id = document.getElementById('org-id').value;
+      const data = {
+        name: document.getElementById('org-name').value,
+        level: document.getElementById('org-level').value,
+        category: document.getElementById('org-category').value,
+        description: document.getElementById('org-description').value || null,
+      };
+
+      if (id) {
+        await fetch(`/api/organizations/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } else {
+        await fetch('/api/organizations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      }
+
+      hideForm();
+      loadOrganizations();
+    });
+
+    function editOrganization(id) {
+      const org = organizations.find(o => o.id === id);
+      if (!org) return;
+
+      document.getElementById('org-id').value = org.id;
+      document.getElementById('org-name').value = org.name;
+      document.getElementById('org-level').value = org.level;
+      document.getElementById('org-category').value = org.category;
+      document.getElementById('org-description').value = org.description || '';
+      showForm('Edit Organization');
+    }
+
+    async function deleteOrganization(id) {
+      await fetch(`/api/organizations/${id}`, { method: 'DELETE' });
+      loadOrganizations();
     }
 
     loadOrganizations();

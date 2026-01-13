@@ -3,11 +3,15 @@ const { expect } = require('@playwright/test');
 
 const { Given, When, Then } = createBdd();
 
+let testId;
 let currentOrganization = null;
 let createdOrganizations = new Map();
 
 // Background
-Given('I am logged in as an admin', async ({ page }) => {
+Given('I am logged in as an admin', async () => {
+  testId = Date.now().toString();
+  currentOrganization = null;
+  createdOrganizations.clear();
   // No auth for now - admin access is assumed
 });
 
@@ -17,6 +21,11 @@ When('I create an organization with:', async ({ request }, dataTable) => {
   dataTable.raw().forEach(([key, value]) => {
     data[key] = value;
   });
+
+  // Make name unique per test
+  if (data.name) {
+    data.name = `${data.name} ${testId}`;
+  }
 
   const response = await request.post('/api/organizations', { data });
   expect(response.status()).toBe(201);
@@ -36,18 +45,18 @@ Then('the organization should have a unique ID', async () => {
 
 // View organizations
 Given('the following organizations exist:', async ({ request }, dataTable) => {
-  // Clear any existing test data by creating fresh orgs
   const rows = dataTable.hashes();
   for (const row of rows) {
+    const uniqueName = `${row.name} ${testId}`;
     const response = await request.post('/api/organizations', {
       data: {
-        name: row.name,
+        name: uniqueName,
         level: row.level,
         category: row.category,
       },
     });
     const org = await response.json();
-    createdOrganizations.set(org.name, org);
+    createdOrganizations.set(uniqueName, org);
   }
 });
 
@@ -63,19 +72,21 @@ Then('I should see {int} organizations', async ({}, count) => {
 });
 
 Given('an organization {string} exists', async ({ request }, name) => {
+  const uniqueName = `${name} ${testId}`;
   const response = await request.post('/api/organizations', {
     data: {
-      name,
+      name: uniqueName,
       level: 'UNIVERSITY',
       category: 'LIBERAL_ARTS',
     },
   });
   const org = await response.json();
-  createdOrganizations.set(name, org);
+  createdOrganizations.set(uniqueName, org);
 });
 
 When('I view the organization {string}', async ({ request }, name) => {
-  const org = createdOrganizations.get(name);
+  const uniqueName = `${name} ${testId}`;
+  const org = createdOrganizations.get(uniqueName);
   const response = await request.get(`/api/organizations/${org.id}`);
   expect(response.status()).toBe(200);
   currentOrganization = await response.json();
@@ -89,15 +100,16 @@ Then('I should see the organization details', async () => {
 
 // Update organizations
 Given('an organization {string} exists with category {string}', async ({ request }, name, category) => {
+  const uniqueName = `${name} ${testId}`;
   const response = await request.post('/api/organizations', {
     data: {
-      name,
+      name: uniqueName,
       level: 'UNIVERSITY',
       category,
     },
   });
   const org = await response.json();
-  createdOrganizations.set(name, org);
+  createdOrganizations.set(uniqueName, org);
 });
 
 When('I update the organization name to {string}', async ({ request }, newName) => {
@@ -105,16 +117,18 @@ When('I update the organization name to {string}', async ({ request }, newName) 
   const lastOrgName = orgNames[orgNames.length - 1];
   const org = createdOrganizations.get(lastOrgName);
 
+  const uniqueNewName = `${newName} ${testId}`;
   const response = await request.put(`/api/organizations/${org.id}`, {
-    data: { name: newName },
+    data: { name: uniqueNewName },
   });
   expect(response.status()).toBe(200);
   currentOrganization = await response.json();
-  createdOrganizations.set(newName, currentOrganization);
+  createdOrganizations.set(uniqueNewName, currentOrganization);
 });
 
 Then('the organization name should be {string}', async ({}, expectedName) => {
-  expect(currentOrganization.name).toBe(expectedName);
+  const uniqueExpectedName = `${expectedName} ${testId}`;
+  expect(currentOrganization.name).toBe(uniqueExpectedName);
 });
 
 When('I update the organization category to {string}', async ({ request }, newCategory) => {
@@ -135,7 +149,8 @@ Then('the organization category should be {string}', async ({}, expectedCategory
 
 // Delete organizations
 When('I delete the organization {string}', async ({ request }, name) => {
-  const org = createdOrganizations.get(name);
+  const uniqueName = `${name} ${testId}`;
+  const org = createdOrganizations.get(uniqueName);
   const response = await request.delete(`/api/organizations/${org.id}`);
   expect(response.status()).toBe(204);
 });
@@ -145,8 +160,9 @@ Then('the organization should be marked as deleted', async () => {
 });
 
 Then('the organization should not appear in the organization list', async ({ request }) => {
+  const uniqueName = `Closing College ${testId}`;
   const response = await request.get('/api/organizations');
   const orgs = await response.json();
   const orgNames = orgs.map((o) => o.name);
-  expect(orgNames).not.toContain('Closing College');
+  expect(orgNames).not.toContain(uniqueName);
 });

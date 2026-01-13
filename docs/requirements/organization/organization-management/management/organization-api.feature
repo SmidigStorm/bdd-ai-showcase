@@ -1,8 +1,8 @@
-@ORG-MNG-001
-Feature: Organization CRUD
-  As an admin
-  I want to manage organizations
-  So that educational institutions can be registered in the system
+@ORG-MNG-002
+Feature: Organization API
+  As a developer
+  I want to manage organizations via API
+  So that I can integrate with the system programmatically
 
   Background:
     Given I am logged in as an admin
