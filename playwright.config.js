@@ -2,7 +2,7 @@ const { defineConfig } = require('@playwright/test');
 const { defineBddConfig } = require('playwright-bdd');
 
 const testDir = defineBddConfig({
-  features: 'features/**/*.feature',
+  features: 'docs/requirements/**/*.feature',
   steps: 'tests/steps/**/*.js',
 });
 
