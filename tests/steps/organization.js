@@ -155,24 +155,24 @@ When('I click the Add Organization button', async ({ page }) => {
   await page.locator('#add-org-btn').click();
 });
 
-When('I fill in {string} as the name', async ({ page }, name) => {
+When('I fill in the organization name {string}', async ({ page }, name) => {
   const uName = uniqueName(name);
   common.createdOrganizations.set(name, { uniqueName: uName });
   await page.locator('#org-name').fill(uName);
 });
 
-When('I click Edit on {string}', async ({ page }, name) => {
+When('I click Edit on organization {string}', async ({ page }, name) => {
   const org = common.createdOrganizations.get(name);
   await page.locator(`tr[data-id="${org.id}"] button`).filter({ hasText: 'Edit' }).click();
 });
 
-When('I change the name to {string}', async ({ page }, name) => {
+When('I change the organization name to {string}', async ({ page }, name) => {
   const uName = uniqueName(name);
   common.createdOrganizations.set(name, { uniqueName: uName });
   await page.locator('#org-name').fill(uName);
 });
 
-When('I click Delete on {string}', async ({ page }, name) => {
+When('I click Delete on organization {string}', async ({ page }, name) => {
   const org = common.createdOrganizations.get(name);
   await page.locator(`tr[data-id="${org.id}"] button`).filter({ hasText: 'Delete' }).click();
 });

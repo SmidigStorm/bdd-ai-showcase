@@ -7,6 +7,7 @@ const { Given, When, Then } = createBdd();
 let testId;
 let createdOrganizations = new Map();
 let createdEducations = new Map();
+let createdAdmissions = new Map();
 
 function uniqueName(name) {
   return `${name} ${testId}`;
@@ -19,6 +20,7 @@ module.exports = {
   uniqueName,
   createdOrganizations,
   createdEducations,
+  createdAdmissions,
 };
 
 // Helper to create a test organization
@@ -41,6 +43,7 @@ Given('I am logged in as an admin', async () => {
   testId = Date.now().toString();
   createdOrganizations.clear();
   createdEducations.clear();
+  createdAdmissions.clear();
 });
 
 // Homepage step - shared by all E2E tests
@@ -48,6 +51,7 @@ Given('I am on the homepage', async ({ page }) => {
   testId = Date.now().toString();
   createdOrganizations.clear();
   createdEducations.clear();
+  createdAdmissions.clear();
   await page.goto('/');
 });
 
@@ -63,13 +67,16 @@ Given('an organization {string} exists', async ({ page, request }, name) => {
 
 // Shared save button
 When('I click Save', async ({ page }) => {
-  // Try organization save first, then education save
+  // Try organization save first, then education save, then admission save
   const orgBtn = page.locator('#submit-org-btn');
   const eduBtn = page.locator('#submit-education-btn');
+  const admBtn = page.locator('#submit-admission-btn');
 
   if (await orgBtn.isVisible()) {
     await orgBtn.click();
   } else if (await eduBtn.isVisible()) {
     await eduBtn.click();
+  } else if (await admBtn.isVisible()) {
+    await admBtn.click();
   }
 });

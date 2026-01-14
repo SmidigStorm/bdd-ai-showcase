@@ -30,6 +30,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="organizations">Organizations</button>
     <button class="tab" data-tab="educations">Educations</button>
+    <button class="tab" data-tab="admissions">Admissions</button>
   </div>
 
   <!-- Organizations Tab -->
@@ -120,9 +121,49 @@
     </table>
   </div>
 
+  <!-- Admissions Tab -->
+  <div id="admissions-tab" class="tab-content">
+    <button id="add-admission-btn">Add Admission</button>
+
+    <div id="admission-form" class="form-section">
+      <h3 id="admission-form-title">Add Admission</h3>
+      <input type="hidden" id="admission-id">
+      <label for="admission-name">Name</label>
+      <input type="text" id="admission-name" required>
+      <label for="admission-opens">Application Opens</label>
+      <input type="date" id="admission-opens" required>
+      <label for="admission-deadline">Application Deadline</label>
+      <input type="date" id="admission-deadline" required>
+      <label for="admission-organization">Organization</label>
+      <select id="admission-organization" required>
+        <option value="">Select an organization...</option>
+      </select>
+      <label for="admission-description">Description (optional)</label>
+      <input type="text" id="admission-description">
+      <button id="submit-admission-btn">Save</button>
+      <button type="button" id="cancel-admission-btn">Cancel</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Opens</th>
+          <th>Deadline</th>
+          <th>Organization</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admissions-list">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <script>
     let organizations = [];
     let educations = [];
+    let admissions = [];
 
     // Tab switching
     document.querySelectorAll('.tab').forEach(tab => {
@@ -157,15 +198,27 @@
           `).join('');
         }
 
-        // Update organization dropdown in education form
-        const orgSelect = document.getElementById('education-organization');
-        const currentValue = orgSelect.value;
-        orgSelect.innerHTML = '<option value="">Select an organization...</option>' +
-          organizations.map(org => `<option value="${org.id}">${org.name}</option>`).join('');
-        if (currentValue) orgSelect.value = currentValue;
+        // Update organization dropdowns
+        updateOrgDropdowns();
       } catch (error) {
         tbody.innerHTML = '<tr><td colspan="4">Error loading organizations.</td></tr>';
       }
+    }
+
+    function updateOrgDropdowns() {
+      const eduSelect = document.getElementById('education-organization');
+      const admSelect = document.getElementById('admission-organization');
+      const eduValue = eduSelect.value;
+      const admValue = admSelect.value;
+
+      const options = '<option value="">Select an organization...</option>' +
+        organizations.map(org => `<option value="${org.id}">${org.name}</option>`).join('');
+
+      eduSelect.innerHTML = options;
+      admSelect.innerHTML = options;
+
+      if (eduValue) eduSelect.value = eduValue;
+      if (admValue) admSelect.value = admValue;
     }
 
     function showOrgForm(title = 'Add Organization') {
@@ -333,10 +386,115 @@
       loadEducations();
     }
 
+    // Admissions
+    async function loadAdmissions() {
+      const tbody = document.getElementById('admissions-list');
+      try {
+        const response = await fetch('/api/admissions');
+        admissions = await response.json();
+
+        if (admissions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">No admissions found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = admissions.map(adm => {
+          const org = organizations.find(o => o.id === adm.organizationId);
+          const opens = adm.applicationOpens ? adm.applicationOpens.split('T')[0] : '';
+          const deadline = adm.applicationDeadline ? adm.applicationDeadline.split('T')[0] : '';
+          return `
+            <tr data-id="${adm.id}">
+              <td>${adm.name}</td>
+              <td>${opens}</td>
+              <td>${deadline}</td>
+              <td>${org ? org.name : 'Unknown'}</td>
+              <td class="actions">
+                <button onclick="editAdmission('${adm.id}')">Edit</button>
+                <button onclick="deleteAdmission('${adm.id}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5">Error loading admissions.</td></tr>';
+      }
+    }
+
+    function showAdmissionForm(title = 'Add Admission') {
+      document.getElementById('admission-form-title').textContent = title;
+      document.getElementById('admission-form').classList.add('visible');
+    }
+
+    function hideAdmissionForm() {
+      document.getElementById('admission-form').classList.remove('visible');
+      document.getElementById('admission-id').value = '';
+      document.getElementById('admission-name').value = '';
+      document.getElementById('admission-opens').value = '';
+      document.getElementById('admission-deadline').value = '';
+      document.getElementById('admission-organization').value = '';
+      document.getElementById('admission-description').value = '';
+    }
+
+    document.getElementById('add-admission-btn').addEventListener('click', () => {
+      hideAdmissionForm();
+      showAdmissionForm('Add Admission');
+    });
+
+    document.getElementById('cancel-admission-btn').addEventListener('click', hideAdmissionForm);
+
+    document.getElementById('submit-admission-btn').addEventListener('click', async () => {
+      const id = document.getElementById('admission-id').value;
+      const opens = document.getElementById('admission-opens').value;
+      const deadline = document.getElementById('admission-deadline').value;
+      const data = {
+        name: document.getElementById('admission-name').value,
+        applicationOpens: opens ? `${opens}T00:00:00Z` : null,
+        applicationDeadline: deadline ? `${deadline}T23:59:59Z` : null,
+        organizationId: document.getElementById('admission-organization').value,
+        description: document.getElementById('admission-description').value || null,
+      };
+
+      if (id) {
+        await fetch(`/api/admissions/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } else {
+        await fetch('/api/admissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      }
+
+      hideAdmissionForm();
+      loadAdmissions();
+    });
+
+    function editAdmission(id) {
+      const adm = admissions.find(a => a.id === id);
+      if (!adm) return;
+
+      document.getElementById('admission-id').value = adm.id;
+      document.getElementById('admission-name').value = adm.name;
+      document.getElementById('admission-opens').value = adm.applicationOpens ? adm.applicationOpens.split('T')[0] : '';
+      document.getElementById('admission-deadline').value = adm.applicationDeadline ? adm.applicationDeadline.split('T')[0] : '';
+      document.getElementById('admission-organization').value = adm.organizationId;
+      document.getElementById('admission-description').value = adm.description || '';
+      showAdmissionForm('Edit Admission');
+    }
+
+    async function deleteAdmission(id) {
+      await fetch(`/api/admissions/${id}`, { method: 'DELETE' });
+      loadAdmissions();
+    }
+
     // Initialize
     async function init() {
       await loadOrganizations();
       await loadEducations();
+      await loadAdmissions();
     }
 
     init();

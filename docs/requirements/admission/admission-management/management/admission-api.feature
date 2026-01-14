@@ -9,6 +9,7 @@ Feature: Admission API
 
   Rule: Admins can create admissions with required fields
 
+    @implemented
     Scenario: Create a new admission
       When I create an admission with:
         | name                | UHG 2025                       |
@@ -19,6 +20,7 @@ Feature: Admission API
       And the admission should have a unique ID
       And the admission status should be "PLANNED"
 
+    @implemented
     Scenario: Create admission without optional description
       When I create an admission with:
         | name                | Local Admission 2025   |
@@ -28,6 +30,7 @@ Feature: Admission API
 
   Rule: Admins can view admissions
 
+    @implemented
     Scenario: View all admissions
       Given the following admissions exist:
         | name     | applicationOpens         | applicationDeadline      |
@@ -36,6 +39,7 @@ Feature: Admission API
       When I view all admissions
       Then I should see 2 admissions
 
+    @implemented
     Scenario: View a single admission by ID
       Given an admission "UHG 2025" exists
       When I view the admission "UHG 2025"
@@ -43,11 +47,13 @@ Feature: Admission API
 
   Rule: Admins can update admissions
 
+    @implemented
     Scenario: Update admission name
       Given an admission "Draft Admission" exists
       When I update the admission name to "Final Admission"
       Then the admission name should be "Final Admission"
 
+    @implemented
     Scenario: Update admission deadline
       Given an admission "UHG 2025" exists with deadline "2025-04-15T23:59:59Z"
       When I update the admission deadline to "2025-04-30T23:59:59Z"
@@ -55,6 +61,7 @@ Feature: Admission API
 
   Rule: Admins can delete admissions
 
+    @implemented
     Scenario: Delete an admission
       Given an admission "Cancelled Admission" exists
       When I delete the admission "Cancelled Admission"
