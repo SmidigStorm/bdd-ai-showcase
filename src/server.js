@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const organizationRoutes = require('./organization-routes');
+const educationRoutes = require('./education-routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/organizations', organizationRoutes);
+app.use('/api/educations', educationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

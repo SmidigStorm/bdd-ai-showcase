@@ -16,57 +16,125 @@
     .form-section label { display: block; margin: 0.5rem 0 0.25rem; }
     .form-section input, .form-section select { width: 100%; padding: 0.5rem; box-sizing: border-box; }
     .form-section button { margin-top: 1rem; }
+    .tabs { margin: 1.5rem 0 1rem; border-bottom: 2px solid #ddd; }
+    .tab { padding: 0.5rem 1rem; border: none; background: none; cursor: pointer; font-size: 1rem; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { border-bottom-color: #007bff; font-weight: bold; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
   </style>
 </head>
 <body>
   <h1>Admissions Portal</h1>
   <p>Welcome to the BDD AI Showcase application.</p>
 
-  <h2>Organizations</h2>
-  <button id="add-org-btn">Add Organization</button>
-
-  <div id="org-form" class="form-section">
-    <h3 id="form-title">Add Organization</h3>
-    <input type="hidden" id="org-id">
-    <label for="org-name">Name</label>
-    <input type="text" id="org-name" required>
-    <label for="org-level">Level</label>
-    <select id="org-level">
-      <option value="UNIVERSITY">University</option>
-      <option value="COLLEGE">College</option>
-      <option value="HIGH_SCHOOL">High School</option>
-    </select>
-    <label for="org-category">Category</label>
-    <select id="org-category">
-      <option value="LIBERAL_ARTS">Liberal Arts</option>
-      <option value="TECHNICAL">Technical</option>
-      <option value="PROFESSIONAL">Professional</option>
-      <option value="RESEARCH">Research</option>
-      <option value="VOCATIONAL">Vocational</option>
-    </select>
-    <label for="org-description">Description (optional)</label>
-    <input type="text" id="org-description">
-    <button id="submit-org-btn">Save</button>
-    <button type="button" id="cancel-btn">Cancel</button>
+  <div class="tabs">
+    <button class="tab active" data-tab="organizations">Organizations</button>
+    <button class="tab" data-tab="educations">Educations</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Level</th>
-        <th>Category</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="organizations-list">
-      <tr><td colspan="4">Loading...</td></tr>
-    </tbody>
-  </table>
+  <!-- Organizations Tab -->
+  <div id="organizations-tab" class="tab-content active">
+    <button id="add-org-btn">Add Organization</button>
+
+    <div id="org-form" class="form-section">
+      <h3 id="org-form-title">Add Organization</h3>
+      <input type="hidden" id="org-id">
+      <label for="org-name">Name</label>
+      <input type="text" id="org-name" required>
+      <label for="org-level">Level</label>
+      <select id="org-level">
+        <option value="UNIVERSITY">University</option>
+        <option value="COLLEGE">College</option>
+        <option value="HIGH_SCHOOL">High School</option>
+      </select>
+      <label for="org-category">Category</label>
+      <select id="org-category">
+        <option value="LIBERAL_ARTS">Liberal Arts</option>
+        <option value="TECHNICAL">Technical</option>
+        <option value="PROFESSIONAL">Professional</option>
+        <option value="RESEARCH">Research</option>
+        <option value="VOCATIONAL">Vocational</option>
+      </select>
+      <label for="org-description">Description (optional)</label>
+      <input type="text" id="org-description">
+      <button id="submit-org-btn">Save</button>
+      <button type="button" id="cancel-org-btn">Cancel</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Level</th>
+          <th>Category</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="organizations-list">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Educations Tab -->
+  <div id="educations-tab" class="tab-content">
+    <button id="add-education-btn">Add Education</button>
+
+    <div id="education-form" class="form-section">
+      <h3 id="education-form-title">Add Education</h3>
+      <input type="hidden" id="education-id">
+      <label for="education-name">Name</label>
+      <input type="text" id="education-name" required>
+      <label for="education-code">Code</label>
+      <input type="text" id="education-code" required>
+      <label for="education-level">Level</label>
+      <select id="education-level">
+        <option value="BACHELOR">Bachelor</option>
+        <option value="MASTER">Master</option>
+        <option value="DOCTORATE">Doctorate</option>
+        <option value="CERTIFICATE">Certificate</option>
+      </select>
+      <label for="education-organization">Organization</label>
+      <select id="education-organization" required>
+        <option value="">Select an organization...</option>
+      </select>
+      <label for="education-description">Description (optional)</label>
+      <input type="text" id="education-description">
+      <button id="submit-education-btn">Save</button>
+      <button type="button" id="cancel-education-btn">Cancel</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Level</th>
+          <th>Organization</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="educations-list">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <script>
     let organizations = [];
+    let educations = [];
 
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+      });
+    });
+
+    // Organizations
     async function loadOrganizations() {
       const tbody = document.getElementById('organizations-list');
       try {
@@ -75,31 +143,37 @@
 
         if (organizations.length === 0) {
           tbody.innerHTML = '<tr><td colspan="4">No organizations found.</td></tr>';
-          return;
+        } else {
+          tbody.innerHTML = organizations.map(org => `
+            <tr data-id="${org.id}">
+              <td>${org.name}</td>
+              <td>${org.level}</td>
+              <td>${org.category}</td>
+              <td class="actions">
+                <button onclick="editOrganization('${org.id}')">Edit</button>
+                <button onclick="deleteOrganization('${org.id}')">Delete</button>
+              </td>
+            </tr>
+          `).join('');
         }
 
-        tbody.innerHTML = organizations.map(org => `
-          <tr data-id="${org.id}">
-            <td>${org.name}</td>
-            <td>${org.level}</td>
-            <td>${org.category}</td>
-            <td class="actions">
-              <button onclick="editOrganization('${org.id}')">Edit</button>
-              <button onclick="deleteOrganization('${org.id}')">Delete</button>
-            </td>
-          </tr>
-        `).join('');
+        // Update organization dropdown in education form
+        const orgSelect = document.getElementById('education-organization');
+        const currentValue = orgSelect.value;
+        orgSelect.innerHTML = '<option value="">Select an organization...</option>' +
+          organizations.map(org => `<option value="${org.id}">${org.name}</option>`).join('');
+        if (currentValue) orgSelect.value = currentValue;
       } catch (error) {
         tbody.innerHTML = '<tr><td colspan="4">Error loading organizations.</td></tr>';
       }
     }
 
-    function showForm(title = 'Add Organization') {
-      document.getElementById('form-title').textContent = title;
+    function showOrgForm(title = 'Add Organization') {
+      document.getElementById('org-form-title').textContent = title;
       document.getElementById('org-form').classList.add('visible');
     }
 
-    function hideForm() {
+    function hideOrgForm() {
       document.getElementById('org-form').classList.remove('visible');
       document.getElementById('org-id').value = '';
       document.getElementById('org-name').value = '';
@@ -109,11 +183,11 @@
     }
 
     document.getElementById('add-org-btn').addEventListener('click', () => {
-      hideForm();
-      showForm('Add Organization');
+      hideOrgForm();
+      showOrgForm('Add Organization');
     });
 
-    document.getElementById('cancel-btn').addEventListener('click', hideForm);
+    document.getElementById('cancel-org-btn').addEventListener('click', hideOrgForm);
 
     document.getElementById('submit-org-btn').addEventListener('click', async () => {
       const id = document.getElementById('org-id').value;
@@ -138,7 +212,7 @@
         });
       }
 
-      hideForm();
+      hideOrgForm();
       loadOrganizations();
     });
 
@@ -151,7 +225,7 @@
       document.getElementById('org-level').value = org.level;
       document.getElementById('org-category').value = org.category;
       document.getElementById('org-description').value = org.description || '';
-      showForm('Edit Organization');
+      showOrgForm('Edit Organization');
     }
 
     async function deleteOrganization(id) {
@@ -159,7 +233,113 @@
       loadOrganizations();
     }
 
-    loadOrganizations();
+    // Educations
+    async function loadEducations() {
+      const tbody = document.getElementById('educations-list');
+      try {
+        const response = await fetch('/api/educations');
+        educations = await response.json();
+
+        if (educations.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">No educations found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = educations.map(edu => {
+          const org = organizations.find(o => o.id === edu.organizationId);
+          return `
+            <tr data-id="${edu.id}">
+              <td>${edu.name}</td>
+              <td>${edu.code}</td>
+              <td>${edu.level}</td>
+              <td>${org ? org.name : 'Unknown'}</td>
+              <td class="actions">
+                <button onclick="editEducation('${edu.id}')">Edit</button>
+                <button onclick="deleteEducation('${edu.id}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5">Error loading educations.</td></tr>';
+      }
+    }
+
+    function showEducationForm(title = 'Add Education') {
+      document.getElementById('education-form-title').textContent = title;
+      document.getElementById('education-form').classList.add('visible');
+    }
+
+    function hideEducationForm() {
+      document.getElementById('education-form').classList.remove('visible');
+      document.getElementById('education-id').value = '';
+      document.getElementById('education-name').value = '';
+      document.getElementById('education-code').value = '';
+      document.getElementById('education-level').value = 'BACHELOR';
+      document.getElementById('education-organization').value = '';
+      document.getElementById('education-description').value = '';
+    }
+
+    document.getElementById('add-education-btn').addEventListener('click', () => {
+      hideEducationForm();
+      showEducationForm('Add Education');
+    });
+
+    document.getElementById('cancel-education-btn').addEventListener('click', hideEducationForm);
+
+    document.getElementById('submit-education-btn').addEventListener('click', async () => {
+      const id = document.getElementById('education-id').value;
+      const data = {
+        name: document.getElementById('education-name').value,
+        code: document.getElementById('education-code').value,
+        level: document.getElementById('education-level').value,
+        organizationId: document.getElementById('education-organization').value,
+        description: document.getElementById('education-description').value || null,
+      };
+
+      if (id) {
+        await fetch(`/api/educations/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } else {
+        await fetch('/api/educations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      }
+
+      hideEducationForm();
+      loadEducations();
+    });
+
+    function editEducation(id) {
+      const edu = educations.find(e => e.id === id);
+      if (!edu) return;
+
+      document.getElementById('education-id').value = edu.id;
+      document.getElementById('education-name').value = edu.name;
+      document.getElementById('education-code').value = edu.code;
+      document.getElementById('education-level').value = edu.level;
+      document.getElementById('education-organization').value = edu.organizationId;
+      document.getElementById('education-description').value = edu.description || '';
+      showEducationForm('Edit Education');
+    }
+
+    async function deleteEducation(id) {
+      await fetch(`/api/educations/${id}`, { method: 'DELETE' });
+      loadEducations();
+    }
+
+    // Initialize
+    async function init() {
+      await loadOrganizations();
+      await loadEducations();
+    }
+
+    init();
   </script>
 </body>
 </html>
